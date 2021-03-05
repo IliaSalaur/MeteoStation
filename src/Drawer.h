@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Bitmap.h>
 #include <TimeManager.h>
+#include <AverageStructs.h>
 
 #include <GxEPD.h>
 
@@ -40,14 +41,14 @@ private:
 
 public:
     Drawer(GxEPD_Class * display, Bitmaps * bitmap);
-    void drawAll(byte batteryP, bool buzzerState, String date, int co2, TimeStruct * time, float temp, int hudm, bool updt);
+    void drawAll(byte batteryP, bool buzzerState, String date, int co2, TimeStruct * time, float temp, float hudm, bool updt);
     void drawBattery(byte batteryP, bool updt);
     void drawBuzzer(bool buzzerState, bool updt);
-    void drawChart(ChartMode chartMode, float tempAvg[24]);
+    void drawChart(ChartMode chartMode, AverageStr * avg);
     void drawUpperText(String date, bool updt);
     void drawMiddleText(int co2,  TimeStruct * time, bool updt);
     void drawDownerText(float temp, int hudm, bool updt);
-    void _drawChartData(byte initial_x, byte initial_y, byte k_x, byte k_y, float data[24]);
+    void _drawChartData(byte initial_x, byte initial_y, byte k_x, byte k_y, AverageStr *data);
     void _update(int x, int y, int width, int height);
     void _update();
     ~Drawer();

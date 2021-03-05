@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "MeteoStation",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"cstdint": "cpp"
+		}
+	}
+}

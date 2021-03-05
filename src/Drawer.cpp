@@ -7,7 +7,7 @@ Drawer::Drawer(GxEPD_Class * display, Bitmaps * bitmaps)
     _display->setRotation(1);
 }
 
-void Drawer::drawAll(byte batteryP, bool buzzerState, String date, int co2, TimeStruct * time, float temp, int hudm, bool updt = 1)
+void Drawer::drawAll(byte batteryP, bool buzzerState, String date, int co2, TimeStruct * time, float temp, float hudm, bool updt = 1)
 {
     _display->drawBitmap(_bitmaps->frame, 0, 0, 252, 121, GxEPD_BLACK);
     drawBattery(batteryP, 0);
@@ -98,21 +98,26 @@ void Drawer::drawMiddleText(int co2,  TimeStruct * time, bool updt = 1)
     _display->fillRect(155, 57, 90, 40, GxEPD_WHITE);
      _display->setCursor(155, 70);
     String timeStr = "";
-    if (time->hour < 10)
+    if(time->hour > -1 && time->minute > -1)
     {
-      timeStr += "0";
-      timeStr += String(time->hour);
+        if (time->hour < 10)
+        {
+            timeStr += "0";
+            timeStr += String(time->hour);
+        }
+        else timeStr = String(time->hour);
+        timeStr += ":";
+        if (time->minute < 10)
+        {
+            timeStr += "0";
+            timeStr += String(time->minute);
+        }
+        else timeStr += String(time->minute);
+        _display->print(timeStr);
+        //Serial.println(timeStr);
     }
-     else timeStr = String(time->hour);
-     timeStr += ":";
-    if (time->minute < 10)
-    {
-        timeStr += "0";
-        timeStr += String(time->minute);
-    }
-    else timeStr += String(time->minute);
-    _display->print(timeStr);
-    //Serial.println(timeStr);
+    else _display->print("No WiFi");
+    
 
     if(updt == 1) 
     {
@@ -143,13 +148,13 @@ void Drawer::drawDownerText(float temp, int hudm, bool updt = 1)
     }
 }
 
-void Drawer::drawChart(ChartMode chartMode, float tempAvg[24])
+void Drawer::drawChart(ChartMode chartMode, AverageStr *avg)
 {
     switch (chartMode)
     {
     case TEMP:
         _display->drawBitmap(_bitmaps->chart.temp_chart, 0, 0, 252, 122, GxEPD_BLACK);
-        this->_drawChartData(30, 107, 9, 2, tempAvg);
+        this->_drawChartData(30, 107, 9, 2, avg);
 
         if(page == TEMPCHART || page == HUDMCHART)   this->_update(0, 0, 252, 122);
         else this->_update();
@@ -158,7 +163,7 @@ void Drawer::drawChart(ChartMode chartMode, float tempAvg[24])
     
     case HUDM:
         _display->drawBitmap(_bitmaps->chart.hudm_chart, 0, 0, 252, 122, GxEPD_BLACK);
-        this->_drawChartData(30, 107, 9, 2, tempAvg);
+        this->_drawChartData(30, 107, 9, 2, avg);
         if(page == TEMPCHART || page == HUDMCHART)   this->_update(0, 0, 252, 122);      
         else this->_update();
         page = HUDMCHART;
@@ -166,22 +171,22 @@ void Drawer::drawChart(ChartMode chartMode, float tempAvg[24])
     }
 }
 
-void Drawer::_drawChartData(byte initial_x, byte initial_y, byte k_x, byte k_y, float data[24])
+void Drawer::_drawChartData(byte initial_x, byte initial_y, byte k_x, byte k_y, AverageStr *data)
 {
     int lastCoords[2] = {-1, -1};
 
     for (byte i = 0; i < 24; i++)
     {
-        if (data[i] > -1)
+        if (data->hour[i] > 0)
         {
             byte x = initial_x;
         x = x + i * k_x;
 
         byte y = initial_y;
-        y = y - round(data[i]) * k_y;
+        y = y - round(data->hour[i]) * k_y;
 
         _display->drawRect(x - 1, y - 1, 3, 3, GxEPD_BLACK);
-        if (i > 0)
+        if (lastCoords[0] != -1 && lastCoords[1] != -1)
             {
                 _display->drawLine(x - 1, y, lastCoords[0] + 1, lastCoords[1], GxEPD_BLACK);
             }
@@ -211,6 +216,5 @@ void Drawer::_update()
 Drawer::~Drawer()
 {
     delete &page;
-    delete _display;
     delete _bitmaps;
 }
