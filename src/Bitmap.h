@@ -2,6 +2,9 @@
 #define BITMAPS_H
 #include <Arduino.h>
 
+#define DISPLAY_213     // e-Ink display 2'13 inch
+//#define DISPLAY_290   // e-Ink display 2'9 inch
+
 
 struct Battery
 {
@@ -559,7 +562,7 @@ const unsigned char temp_chart[3904]   = { /* 0X00,0X01,0XFC,0X00,0X7A,0X00, */
 };
 };
 
-
+#ifdef DISPLAY_213
 struct Bitmaps
 {
     Battery battery;
@@ -812,6 +815,5 @@ struct Bitmaps
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XF0,
 };
 };
-
-
+#endif
 #endif

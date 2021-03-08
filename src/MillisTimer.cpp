@@ -13,13 +13,22 @@ void MillisTimer::start(int period, bool stopIfReady = 1)
     _timer = millis();
     _period = period;
     _stopIfReady = stopIfReady;
+    _workState = 1;
 }
 
 bool MillisTimer::isReady()
 {
-    if(millis() - _timer >= _period)
+    if(_workState == 1 && millis() - _timer >= _period)
     {
-        if(_stopIfReady == 0)   this->start(_period, 0);
+        if(millis() - _timer >= _period+2)
+        {
+            _workState = 0;
+            if(_stopIfReady == 0)
+            {
+                this->start(_period, 0);
+            }   
+        }
+        
         return 1;
     }
     else return 0;

@@ -26,7 +26,8 @@ enum Page
     CLEAR,
     FRAME,
     TEMPCHART,
-    HUDMCHART
+    HUDMCHART,
+    CO2CHART
 };
 
 
@@ -48,6 +49,7 @@ public:
     void drawUpperText(String date, bool updt);
     void drawMiddleText(int co2,  TimeStruct * time, bool updt);
     void drawDownerText(float temp, int hudm, bool updt);
+    Page getPage();
     void _drawChartData(byte initial_x, byte initial_y, byte k_x, byte k_y, AverageStr *data);
     void _update(int x, int y, int width, int height);
     void _update();

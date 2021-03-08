@@ -15,13 +15,21 @@
 #include <GxIO/GxIO.h>
 
 #define TIMEZONE 2
+#define DELAY delay(1);
 
 String getNTPData();
+int analogReadBut();
+byte buttonPressed();
+void drawNextPage(Page pageNow);
 
 const char *ssid     = "hinev1";
 const char *password = "069052345";
 int lastMin = -1;
 bool wifiState = 0;
+bool butTimerStart = 0;
+uint32_t analogTimer = 0;
+uint32_t butTimer = 0;
+uint32_t ntpTimerMillis = 0;
 
 AverageStr temperature;
 AverageStr humidity;
@@ -62,7 +70,8 @@ void setup() {
       break;
     } 
   }
-
+  pinMode(A0, INPUT);
+  
   dht.begin();
   temp_sensor.begin();
   hudm_sensor.begin();
@@ -75,18 +84,21 @@ void setup() {
   epaper.setRotation(1);
   epaper.eraseDisplay();
   
-  ntpTimer->start(10000, 0);
+  ntpTimer->start(10000, 1);
 }
 
 void loop() {
-  if(ntpTimer->isReady())
+  if(millis() - ntpTimerMillis > 10000)
   {
-     getNTPData();
+    ntpTimerMillis = millis();
+    Serial.println("ntpTimer ready");
+    getNTPData();
   }  
 
   if(lastMin != _time.minute)
   {
     display.drawAll(50, 1, getNTPData(), 996, &_time, temp_sensor.getData(), hudm_sensor.getData(), 1);
+    lastMin = _time.minute;
   }
 
   if(Serial.available())
@@ -103,9 +115,22 @@ void loop() {
     }
   }
 
+  switch(buttonPressed())
+  {
+    case 2:
+      display.drawAll(50, 1, getNTPData(), 996, &_time, temp_sensor.getData(), hudm_sensor.getData(), 1);
+      break;
+
+    case 1:
+      drawNextPage(display.getPage());
+      break;
+
+    case 0: 
+      break;
+  }
+
   hudm_sensor.handleAverageData(_time.hour, &humidity);
   temp_sensor.handleAverageData(_time.hour, &temperature);
-
 }
 
 
@@ -116,8 +141,20 @@ String getNTPData()
   {
     timeClient.update();
     _time.minute = timeClient.getMinutes();
-    _time.hour = timeClient.getHours() + TIMEZONE;
-    lastMin = _time.minute;
+    switch(timeClient.getHours())
+    {
+      case 22:
+        _time.hour = 0;
+        break;
+
+      case 23:
+        _time.hour = 1;
+        break;
+
+      default:
+        _time.hour = timeClient.getHours() + TIMEZONE;
+        break;
+    }
 
     String date;
     date = timeClient.getFormattedDate();
@@ -129,6 +166,10 @@ String getNTPData()
       String year = formDat.substring(0, 4);
       formDat = day + " . " + month + " . " + year;
     */
+
+   Serial.println(String(_time.hour) + String(":") + String(_time.minute));
+   DELAY
+
    return date;
   }
 
@@ -139,3 +180,70 @@ String getNTPData()
     return String(""); 
   }
 }
+
+byte buttonPressed()
+{
+  int analog = analogReadBut();
+  int milHolded;
+
+  if(analog > 700 && butTimerStart == 0)
+  {
+    butTimer = millis();
+    butTimerStart = 1;
+    
+    Serial.println("butTimer start");
+    
+  }
+  else if(analog < 700 && butTimerStart == 1)
+  {
+    butTimerStart = 0;
+    milHolded = millis() - butTimer;
+
+    Serial.println(String("butTimer stop , milHolded: ") + String(milHolded));
+
+
+    if(milHolded > 900) return 2;
+    else if(milHolded > 80) return 1;
+    else return 0;
+  }
+  else return 0;
+}
+
+int analogReadBut()
+{
+  static int lastRead;
+  if(millis() - analogTimer > 10) 
+  {
+    analogTimer = millis();
+    lastRead = analogRead(A0);
+    Serial.print("Analog: ");
+    Serial.println (lastRead);
+    return lastRead;
+  }
+  else return lastRead;
+}
+
+void drawNextPage(Page pageNow)
+{
+  pageNow = display.getPage();
+  switch(pageNow)
+  {
+    case FRAME:
+      display.drawChart(TEMP, &temperature);
+      break;
+
+    case TEMPCHART:
+      display.drawChart(HUDM, &humidity);
+      break;
+  
+    case HUDMCHART:
+      display.drawAll(50, 1, getNTPData(), 996, &_time, temp_sensor.getData(), hudm_sensor.getData(), 1);
+      break;
+
+    case CLEAR:
+      display.drawAll(50, 1, getNTPData(), 996, &_time, temp_sensor.getData(), hudm_sensor.getData(), 1);
+      break;
+  }
+}
+
+

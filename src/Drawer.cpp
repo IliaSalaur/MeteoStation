@@ -7,6 +7,11 @@ Drawer::Drawer(GxEPD_Class * display, Bitmaps * bitmaps)
     _display->setRotation(1);
 }
 
+Page Drawer::getPage()
+{
+    return page;
+}
+
 void Drawer::drawAll(byte batteryP, bool buzzerState, String date, int co2, TimeStruct * time, float temp, float hudm, bool updt = 1)
 {
     _display->drawBitmap(_bitmaps->frame, 0, 0, 252, 121, GxEPD_BLACK);
@@ -89,7 +94,6 @@ void Drawer::drawUpperText(String date, bool updt = 1)
 void Drawer::drawMiddleText(int co2,  TimeStruct * time, bool updt = 1)
 {
     _display->setTextColor(GxEPD_BLACK);
-    _display->setFont(&FreeSerifBold18pt7b);
     _display->fillRect(40, 57, 59, 40, GxEPD_WHITE);
     _display->setCursor(40, 70);
     _display->setFont(&FreeSerifBold18pt7b);
@@ -116,7 +120,11 @@ void Drawer::drawMiddleText(int co2,  TimeStruct * time, bool updt = 1)
         _display->print(timeStr);
         //Serial.println(timeStr);
     }
-    else _display->print("No WiFi");
+    else
+    {
+        _display->setFont(&FreeSerifBold9pt7b);
+        _display->print("No WiFi");
+    } 
     
 
     if(updt == 1) 
@@ -163,7 +171,7 @@ void Drawer::drawChart(ChartMode chartMode, AverageStr *avg)
     
     case HUDM:
         _display->drawBitmap(_bitmaps->chart.hudm_chart, 0, 0, 252, 122, GxEPD_BLACK);
-        this->_drawChartData(30, 107, 9, 2, avg);
+        this->_drawChartData(30, 107, 9, 1, avg);
         if(page == TEMPCHART || page == HUDMCHART)   this->_update(0, 0, 252, 122);      
         else this->_update();
         page = HUDMCHART;
