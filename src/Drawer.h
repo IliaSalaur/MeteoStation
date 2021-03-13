@@ -35,6 +35,7 @@ class Drawer
 {
 private:
     GxEPD_Class * _display;
+    int lastCoords[2] = {-1, -1};
     Bitmaps * _bitmaps;
     Page page;  
 

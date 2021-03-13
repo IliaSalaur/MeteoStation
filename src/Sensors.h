@@ -15,7 +15,8 @@ protected:
     AverageStr _data;
     float _lastData;
     String _DEBUG;
-    MillisTimer *dataTimer = new MillisTimer;
+    uint32_t dataTimer = 0;
+    //MillisTimer *dataTimer = new MillisTimer;
 
 public:
     Sensor();

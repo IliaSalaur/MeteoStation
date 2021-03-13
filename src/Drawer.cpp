@@ -180,9 +180,7 @@ void Drawer::drawChart(ChartMode chartMode, AverageStr *avg)
 }
 
 void Drawer::_drawChartData(byte initial_x, byte initial_y, byte k_x, byte k_y, AverageStr *data)
-{
-    int lastCoords[2] = {-1, -1};
-
+{    
     for (byte i = 0; i < 24; i++)
     {
         if (data->hour[i] > 0)

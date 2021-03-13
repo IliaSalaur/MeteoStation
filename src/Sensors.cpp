@@ -116,8 +116,8 @@ Hudm_Sensor::~Hudm_Sensor(){}
 
 void Sensor::handleAverageData(int hour, AverageStr * avg)
 {
-    if(timerStarted == 0)   dataTimer->start(10 * 1000, 0);  timerStarted = 1;
-    if(dataTimer->isReady())
+    if(timerStarted == 0)   dataTimer = millis();  timerStarted = 1;
+    if(timerStarted == 1 && millis() - dataTimer > 10000)
     {
         float data = this->getData();
         if(data > 0)
