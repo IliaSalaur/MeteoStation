@@ -1,249 +1,154 @@
 #include <Arduino.h>
-#include <GxEPD.h>
+#include <Config.h>
 #include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
-#include <NTPClient.h>
+#include <Debug.h>
 
+#include <Button.h>
 #include <Sensors.h>
-#include <Drawer.h>
+#include <DrawerMod.h>
+#include <TimeManager.h>
 #include <Bitmap.h>
 
-// select the display class to use, only one, copy from GxEPD_Example
-#include <GxGDE0213B1/GxGDE0213B1.h>
-
-#include <GxIO/GxIO_SPI/GxIO_SPI.h>
-#include <GxIO/GxIO.h>
-
-#define TIMEZONE 2
-#define DELAY delay(1);
-
-String getNTPData();
-int analogReadBut();
-byte buttonPressed();
-void drawNextPage(Page pageNow);
-
-const char *ssid     = "hinev1";
-const char *password = "069052345";
-int lastMin = -1;
-bool wifiState = 0;
-bool butTimerStart = 0;
-uint32_t analogTimer = 0;
-uint32_t butTimer = 0;
-uint32_t ntpTimerMillis = 0;
-
-AverageStr temperature;
-AverageStr humidity;
+Average temperature;
+Average humidity;
+Average co2;
 
 GxIO_Class io(SPI, /*CS=D8*/ D8, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
 GxEPD_Class epaper(io, /*RST=D4*/ 2, /*BUSY=D2*/ 4);
 
-MillisTimer *ntpTimer = new MillisTimer;
-Bitmaps bitmaps PROGMEM;
-TimeStruct _time;
 
-Drawer display(&epaper, &bitmaps);
-
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
-
+DrawerMod display(&epaper);
+Button button(D0);
 DHT dht(D1, DHT11);
 Temp_Sensor temp_sensor(&dht);
 Hudm_Sensor hudm_sensor(&dht);
+TimeManager* timeNtp = nullptr;
+int i = 0;
+
+DrawContextClass frame;
+DrawContextClass tempChart;
+DrawContextClass hudmChart;
+DrawContextClass co2Chart;
+Bitmaps bm;
+
+void handleDisplay(bool redraw = 0)
+{
+  static uint32_t htmr = 0;
+  htmr = (redraw) ? -1:htmr;
+  if(millis() - htmr >= 15000)
+  {
+    htmr = millis();
+    display.redrawLastPage();
+  }
+}
 
 void setup() {
   Serial.begin(115200);
   Serial.setTimeout(30);
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-  MillisTimer *wifiTimer = new MillisTimer;
-  wifiTimer->start(10000, 1);
+  MillisTimer wifiTimer;
+  wifiTimer.start(20000, 1);
 
-  while (!wifiTimer->isReady()) 
+  while (!wifiTimer.isReady()) 
   {
     delay (500);
     Serial.print (".");
     if(WiFi.status() == WL_CONNECTED)
     {
-      wifiState = 1;
+      timeNtp = new TimeManager(TIMEZONE);
       break;
     } 
   }
-  pinMode(A0, INPUT);
   
+  for(int i = 0; i < 24; i++)
+  {
+    co2.a[i] = float(random(0, 2000));
+    temperature.a[i] = float(random(0, 50));
+    humidity.a[i] = float(random(0, 100));
+  }
+
   dht.begin();
   temp_sensor.begin();
   hudm_sensor.begin();
 
+  Serial.println(temp_sensor.getDebug());
   Serial.println(hudm_sensor.getDebug());
-  Serial.println(hudm_sensor.getDebug());
-
-
-  epaper.init();
-  epaper.setRotation(1);
-  epaper.eraseDisplay();
   
-  ntpTimer->start(10000, 1);
+  frame.setContext(
+    DrawContextBuilder("Home").addBitmap("frame", 0, 0, 252, 122, bm.frame, 3904)
+    ->addText("date", 10, 16, 140, 9, "", &FreeSerifBold9pt7b)
+    ->addText("temp", 20, 115, 27, 9, "", &FreeSerifBold9pt7b)
+    ->addText("time", 155, 70, 90, 42, "", &FreeSerifBold18pt7b)
+    ->addText("hudm", 210, 115, 27, 9, "", &FreeSerifBold9pt7b)
+    ->addText("co2", 40, 70, 59, 42, "", &FreeSerifBold18pt7b)
+    ->addBitmap("battery", 221, 6, 24, 12, bm.battery.low, 36)
+    ->addRect("bwr", 224, 9, 15, 6, 1, GxEPD_WHITE)
+    ->addRect("bper", 224, 9, 5, 6, 1)
+    ->build()
+    );
+
+  DrawContextBuilder("lol").build();
+  hudmChart.setContext(
+    DrawContextBuilder("Hudm")
+    .addChart("chart", 30, 107, 237, 0, &humidity, 0, 100, bm.chart.hudm_chart)
+    ->build()
+  );
+
+  tempChart.setContext(
+    DrawContextBuilder("Temp")
+    .addChart("chart", 30, 107, 237, 0, &temperature, 0, 50, bm.chart.temp_chart)
+    ->build()
+  );
+
+  co2Chart.setContext(
+    DrawContextBuilder("Co2")
+    .addChart("chart", 33, 91, 235, 15, &co2, 0, 2000, bm.chart.co2_chart)
+    ->build()
+  );
+
+  display.addPage(frame.getContext());
+  display.addPage(hudmChart.getContext());
+  display.addPage(tempChart.getContext());
+  display.addPage(co2Chart.getContext());
+
+  display.begin();
+  display.drawPage("Home");
 }
 
-void loop() {
-  if(millis() - ntpTimerMillis > 10000)
-  {
-    ntpTimerMillis = millis();
-    Serial.println("ntpTimer ready");
-    getNTPData();
-  }  
-
-  if(lastMin != _time.minute)
-  {
-    display.drawAll(50, 1, getNTPData(), 996, &_time, temp_sensor.getData(), hudm_sensor.getData(), 1);
-    lastMin = _time.minute;
-  }
-
-  if(Serial.available())
-  {
-    switch (Serial.read())
-    {
-    case 'h':
-      display.drawChart(HUDM, &humidity);
-      break;
-    
-    case 't':
-      display.drawChart(TEMP, &temperature);
-      break;
-    }
-  }
-
-  switch(buttonPressed())
-  {
-    case 2:
-      display.drawAll(50, 1, getNTPData(), 996, &_time, temp_sensor.getData(), hudm_sensor.getData(), 1);
-      break;
-
-    case 1:
-      drawNextPage(display.getPage());
-      break;
-
-    case 0: 
-      break;
-  }
-
-  hudm_sensor.handleAverageData(_time.hour, &humidity);
-  temp_sensor.handleAverageData(_time.hour, &temperature);
-}
-
-
-
-String getNTPData()
+void loop()
 {
-  if ( wifiState == 1)
+  i++;
+  int co2Int = random(0, 2000);
+  frame.set<ElText>("date")->text = timeNtp->getDateFormatted();
+  frame.set<ElText>("text")->text = String("kek") + String(i);
+  frame.set<ElText>("time")->text = timeNtp->getTimeFormatted();
+  frame.set<ElText>("hudm")->text = String(hudm_sensor.getData(), 0) + String("%");
+  frame.set<ElText>("temp")->text = String(temp_sensor.getData(), 1);
+  frame.set<ElText>("co2")->text = String(co2Int);
+  //frame.set<ElBitmap>("buzzer")->bitmap = (i % 2 == 1) ? bm.buzzer.off : bm.buzzer.on;
+  //frame.set<ElRect>("bper")->width = (i % 5) * 4;
+
+  switch(button.getState())
   {
-    timeClient.update();
-    _time.minute = timeClient.getMinutes();
-    switch(timeClient.getHours())
-    {
-      case 22:
-        _time.hour = 0;
-        break;
+  case ButtonStates::HOLDED:
+    display.drawPage("Home");
+    break;
 
-      case 23:
-        _time.hour = 1;
-        break;
-
-      default:
-        _time.hour = timeClient.getHours() + TIMEZONE;
-        break;
-    }
-
-    String date;
-    date = timeClient.getFormattedDate();
-    date.remove(date.indexOf("T"));
-    /*
-      //formDat.replace("-", ".");
-      String day = formDat.substring(8);
-      String month = formDat.substring(5, 7);
-      String year = formDat.substring(0, 4);
-      formDat = day + " . " + month + " . " + year;
-    */
-
-   Serial.println(String(_time.hour) + String(":") + String(_time.minute));
-   DELAY
-
-   return date;
+  case ButtonStates::CLICKED:
+    display.drawNextPage();
+    break;
   }
 
-  else 
+  if(timeNtp)
   {
-    _time.hour = -1;
-    _time.minute = -1;
-    return String(""); 
+    hudm_sensor.handleAverageData(timeNtp->getTime().hour, &humidity);
+    temp_sensor.handleAverageData(timeNtp->getTime().hour, &temperature);
+    //co2_sensor.handleAverageData(timeNtp->getTime().hour, &co2);
+    co2.a[random(0, 24)] = co2Int;
   }
+  handleDisplay();
 }
-
-byte buttonPressed()
-{
-  int analog = analogReadBut();
-  int milHolded;
-
-  if(analog > 700 && butTimerStart == 0)
-  {
-    butTimer = millis();
-    butTimerStart = 1;
-    
-    Serial.println("butTimer start");
-    
-  }
-  else if(analog < 700 && butTimerStart == 1)
-  {
-    butTimerStart = 0;
-    milHolded = millis() - butTimer;
-
-    Serial.println(String("butTimer stop , milHolded: ") + String(milHolded));
-
-
-    if(milHolded > 900) return 2;
-    else if(milHolded > 80) return 1;
-    else return 0;
-  }
-  else return 0;
-}
-
-int analogReadBut()
-{
-  static int lastRead;
-  if(millis() - analogTimer > 10) 
-  {
-    analogTimer = millis();
-    lastRead = analogRead(A0);
-    Serial.print("Analog: ");
-    Serial.println (lastRead);
-    return lastRead;
-  }
-  else return lastRead;
-}
-
-void drawNextPage(Page pageNow)
-{
-  pageNow = display.getPage();
-  switch(pageNow)
-  {
-    case FRAME:
-      display.drawChart(TEMP, &temperature);
-      break;
-
-    case TEMPCHART:
-      display.drawChart(HUDM, &humidity);
-      break;
-  
-    case HUDMCHART:
-      display.drawAll(50, 1, getNTPData(), 996, &_time, temp_sensor.getData(), hudm_sensor.getData(), 1);
-      break;
-
-    case CLEAR:
-      display.drawAll(50, 1, getNTPData(), 996, &_time, temp_sensor.getData(), hudm_sensor.getData(), 1);
-      break;
-  }
-}
-
 

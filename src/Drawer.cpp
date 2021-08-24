@@ -1,5 +1,5 @@
 #include <Drawer.h>
-
+/*
 Drawer::Drawer(GxEPD_Class * display, Bitmaps * bitmaps)
 {
     _display = display;
@@ -12,7 +12,8 @@ Page Drawer::getPage()
     return page;
 }
 
-void Drawer::drawAll(byte batteryP, bool buzzerState, String date, int co2, TimeStruct * time, float temp, float hudm, bool updt = 1)
+void Drawer::drawAll(byte batteryP, bool buzzerState, String date, 
+        int co2, TimeStruct * time, float temp, float hudm, bool updt = 1)
 {
     _display->drawBitmap(_bitmaps->frame, 0, 0, 252, 121, GxEPD_BLACK);
     drawBattery(batteryP, 0);
@@ -186,19 +187,19 @@ void Drawer::_drawChartData(byte initial_x, byte initial_y, byte k_x, byte k_y, 
         if (data->hour[i] > 0)
         {
             byte x = initial_x;
-        x = x + i * k_x;
+            x = x + i * k_x;
 
-        byte y = initial_y;
-        y = y - round(data->hour[i]) * k_y;
+            byte y = initial_y;
+            y = y - round(data->hour[i]) * k_y;
 
-        _display->drawRect(x - 1, y - 1, 3, 3, GxEPD_BLACK);
-        if (lastCoords[0] != -1 && lastCoords[1] != -1)
-            {
-                _display->drawLine(x - 1, y, lastCoords[0] + 1, lastCoords[1], GxEPD_BLACK);
-            }
-        lastCoords[0] = x;
-        lastCoords[1] = y;
-        //Serial.println("temp: " + String(data[i]) + ";  hour: " + String(i) + ";  x: " + String(x) + ";  y: " + String(y) + ";");
+            _display->drawRect(x - 1, y - 1, 3, 3, GxEPD_BLACK);
+            if (lastCoords[0] != -1 && lastCoords[1] != -1)
+                {
+                    _display->drawLine(x - 1, y, lastCoords[0] + 1, lastCoords[1], GxEPD_BLACK);
+                }
+            lastCoords[0] = x;
+            lastCoords[1] = y;
+            //Serial.println("temp: " + String(data[i]) + ";  hour: " + String(i) + ";  x: " + String(x) + ";  y: " + String(y) + ";");
         }
         else 
         {
@@ -223,4 +224,4 @@ Drawer::~Drawer()
 {
     delete &page;
     delete _bitmaps;
-}
+}*/

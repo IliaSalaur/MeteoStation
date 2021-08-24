@@ -1,16 +1,22 @@
 #ifndef DRAWER_H
 #define DRAWER_H
-
+/*
 #include <Arduino.h>
+#include <Config.h>
+
 #include <Bitmap.h>
 #include <TimeManager.h>
 #include <AverageStructs.h>
 
 #include <GxEPD.h>
-
-#include <GxGDE0213B1/GxGDE0213B1.h>
 #include <GxIO/GxIO_SPI/GxIO_SPI.h>
 #include <GxIO/GxIO.h>
+#ifdef DISPLAY213
+#include <GxGDE0213B1/GxGDE0213B1.h>
+#elif defined(DISPLAY290)
+#include <GxGDEH029A1/GxGDEH029A1.h> //not right
+#endif
+
 
 #include <Fonts/FreeSerifBold9pt7b.h>
 #include <Fonts/FreeSerifBold18pt7b.h>
@@ -18,7 +24,8 @@
 enum ChartMode
 {
     TEMP,
-    HUDM
+    HUDM,
+    CO2
 };
 
 enum Page
@@ -37,7 +44,9 @@ private:
     GxEPD_Class * _display;
     int lastCoords[2] = {-1, -1};
     Bitmaps * _bitmaps;
-    Page page;  
+    Page page;
+
+    void test();  
 
     
 
@@ -56,5 +65,5 @@ public:
     void _update();
     ~Drawer();
 };
-
+*/
 #endif
