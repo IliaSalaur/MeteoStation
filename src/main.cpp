@@ -24,7 +24,7 @@ GxEPD_Class epaper(io, /*RST=D4*/ 2, /*BUSY=D2*/ 4);
 DrawerMod display(&epaper, WIDTH_D, HEIGHT_D);
 Button button(D0);
 
-MHZ19PWM mhz(D5, MHZ_ASYNC_MODE);
+MHZ19PWM mhz(D6, MHZ_ASYNC_MODE);
 DHT dht(D1, DHT11);
 
 Temp_Sensor temp_sensor(&dht);
