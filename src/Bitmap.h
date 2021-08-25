@@ -5,8 +5,7 @@
 #ifdef USE_BITMAPS
 #include <Arduino.h>
 
-#define DISPLAY_213     // e-Ink display 2'13 inch
-//#define DISPLAY_290   // e-Ink display 2'9 inch
+
 
 
 struct Battery
@@ -36,7 +35,7 @@ const unsigned char on[39]   = { /* 0X00,0X01,0X12,0X00,0X0D,0X00, */
 0XC0,0X07,0XB1,0X80,0X00,0X01,0X00,};
 };
 
-#ifdef DISPLAY_213
+#ifdef DISPLAY213
 struct Chart
 {
     const unsigned char hudm_chart[3904]   = { /*0X00,0X01,0XFC,0X00,0X7A,0X00,*/
@@ -1034,7 +1033,7 @@ struct Bitmaps
 0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XF0,
 };
 };
-#elif
+#elif defined(DISPLAY290)
 
 struct Chart
 {

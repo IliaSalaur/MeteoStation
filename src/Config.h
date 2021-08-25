@@ -1,14 +1,14 @@
 #ifndef METEOSTATION_CONFIG_H
 #define METEOSTATION_CONFIG_H
 
-#define DISPLAY213 //2.13 inch
-//#define DISPLAY290 //2.9 inch
+//#define DISPLAY213 //2.13 inch
+#define DISPLAY290 //2.9 inch
 
-#define WIFI_SSID "leonid"
-#define WIFI_PASS "sl820710"
-
-#define TIMEZONE 3
-#define CO2_MAX_LIMIT 1700
+#define WIFI_SSID "HUAWEI P30 Pro"
+#define WIFI_PASS "12345678"
+ 
+#define TIMEZONE 3 //часовой пояс
+#define CO2_MAX_LIMIT 1200 // лимит со2
 
 #define EMULATE_CO2 false
 
