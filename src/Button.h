@@ -63,7 +63,7 @@ public:
 
 
             if(milHolded > 900) return ButtonStates::HOLDED;
-            else if(milHolded > 80) return ButtonStates::CLICKED;
+            else if(milHolded > 40) return ButtonStates::CLICKED;
         }
         return ButtonStates::RELEASED;
     }

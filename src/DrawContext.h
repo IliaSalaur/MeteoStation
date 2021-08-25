@@ -91,7 +91,7 @@ struct ElLine : public IElement
 
 struct ElChart : public ElBitmap
 {
-    Average average;
+    Average *average;
     float maxValue;
     float minValue;
     ElChart()
@@ -106,7 +106,7 @@ struct ElChart : public ElBitmap
         maxValue = max;
         minValue = min;
         bitmap = b;
-        average = *avg;
+        average = avg;
         eltype = ElType::CHART;
     }
 };

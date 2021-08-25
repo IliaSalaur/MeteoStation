@@ -14,32 +14,13 @@
 #include <GxGDEH029A1/GxGDEH029A1.h> //not right
 #endif
 
-
-#include <Fonts/FreeSerifBold9pt7b.h>
-#include <Fonts/FreeSerifBold18pt7b.h>
-
-enum ChartMode
-{
-    TEMP,
-    HUDM,
-    CO2
-};
-
-enum Page
-{
-    CLEAR,
-    FRAME,
-    TEMPCHART,
-    HUDMCHART,
-    CO2CHART
-};
-
-
 class DrawerMod
 {
 private:
     GxEPD_Class * _display;
     String _lastName;
+
+    int h, w;
 
     vector<DrawContext> _pages;
 
@@ -54,7 +35,7 @@ private:
     void _update();
     
 public:
-    DrawerMod(GxEPD_Class * display);
+    DrawerMod(GxEPD_Class * display, int _w, int _h);
 
     void begin();
     void drawContext(DrawContext context);    

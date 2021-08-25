@@ -1,13 +1,12 @@
 #include <DrawerMod.h>
 
-#define WIDTH 252
-#define HEIGHT 122
-
-DrawerMod::DrawerMod(GxEPD_Class * display)
+DrawerMod::DrawerMod(GxEPD_Class * display, int _w, int _h)
 {
     _display = display;
     _display->setRotation(1);
     _lastName = "";
+    w = _w;
+    h = _h;
 }
 
 void DrawerMod::begin()
@@ -27,7 +26,7 @@ void DrawerMod::drawContext(DrawContext context)
     }
     if(_lastName == context.name)
     {
-        this->_update(0, 0, WIDTH, HEIGHT);    
+        this->_update(0, 0, w, h);    
     } 
     else this->_update();
     _lastName = context.name;
@@ -128,7 +127,7 @@ void DrawerMod::drawPage(String name)
 
 void DrawerMod::drawNextPage()
 {
-    for(int i = 0; i < _pages.size(); i++)
+    for(size_t i = 0; i < _pages.size(); i++)
     {
         if (_pages[i].name == _lastName)
         {
@@ -152,26 +151,30 @@ void DrawerMod::redrawLastPage()
 
 void DrawerMod::_drawChart(ElChart* chart)
 {
-    this->_drawBitmap(0, 0, WIDTH, HEIGHT, chart->bitmap);
+    this->_drawBitmap(0, 0, w, h, chart->bitmap);
     int lastCoords[2] = {-1, -1};
     for (uint8_t i = 0; i < 24; i++)
     {
-        //uint8_t x = chart->x;
-        //x = x + i * chart->width;
-        uint8_t x = map(i, 0, 23, chart->x, chart->width); //0, 23 - hours (from 0 to 23)
+        if(chart->average->a[i] != -1.0F)
+        {
+            //uint8_t x = chart->x;
+            //x = x + i * chart->width;
+            uint8_t x = map(i, 0, 23, chart->x, chart->width); //0, 23 - hours (from 0 to 23)
 
-        //uint8_t y = chart->y;
-        //y = y - round(chart->average[i]) * chart->height;
-        uint8_t y = map(chart->average.a[i], chart->minValue, chart->maxValue, 0, chart->y);
+            //uint8_t y = chart->y;
+            //y = y - round(chart->average[i]) * chart->height;
+            uint8_t y = map(chart->average->a[i], chart->minValue, chart->maxValue, 0, chart->y);
 
-        _display->drawRect(x - 1, y - 1, 3, 3, GxEPD_BLACK);
-        if (lastCoords[0] != -1 && lastCoords[1] != -1)
-            {
-                _display->drawLine(x - 1, y, lastCoords[0] + 1, lastCoords[1], GxEPD_BLACK);
-            }
-        lastCoords[0] = x;
-        lastCoords[1] = y;
-        DEBUG(String("Data: ") + String(chart->average.a[i]) + String(";  hour: ") + String(i) + String(";  x: ") + String(x) + String(";  y: ") + String(y) + String(";"));
+            _display->drawRect(x - 1, y - 1, 3, 3, GxEPD_BLACK);
+            if (lastCoords[0] != -1 && lastCoords[1] != -1)
+                {
+                    _display->drawLine(x - 1, y, lastCoords[0] + 1, lastCoords[1], GxEPD_BLACK);
+                }
+            lastCoords[0] = x;
+            lastCoords[1] = y;
+            DEBUG(String("Data: ") + String(chart->average->a[i]) + String(";  hour: ") + String(i) + String(";  x: ") + String(x) + String(";  y: ") + String(y) + String(";"));
+        }
+        else DEBUG("Bad data:" + String(chart->average->a[i]) + String(";  hour: ") + String(i))
     }
     DEBUG(chart->x)
     DEBUG(chart->width)

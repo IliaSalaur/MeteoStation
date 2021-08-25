@@ -8,5 +8,16 @@
 #define WIFI_PASS "sl820710"
 
 #define TIMEZONE 3
+#define CO2_MAX_LIMIT 1700
+
+#define EMULATE_CO2 false
+
+#ifdef DISPLAY213
+#define WIDTH_D 252
+#define HEIGHT_D 122
+#elif defined(DISPLAY290)
+#define WIDTH_D 296
+#define HEIGHT_D 128
+#endif
 
 #endif

@@ -7,6 +7,7 @@
 #include <MHZ19PWM.h>
 #include <MillisTimer.h>
 #include <Average.h>
+#include <Config.h>
 
 class ISensor
 {
@@ -28,15 +29,19 @@ public:
 
 };
 
-class CO2_Sensor : protected ISensor
+class CO2_Sensor : public ISensor
 {
 private:
     MHZ19PWM * _co2_sensor;
+    bool _em = 0;
+    void(*_cb)();
+    float _maxLimit = CO2_MAX_LIMIT;
 
 public:
-    CO2_Sensor(MHZ19PWM * co2);
+    CO2_Sensor(MHZ19PWM * co2, bool);
     bool begin() override;
     float getData() override;
+    void onMaxLimit(void(*cb)(), float maxLimit);
     ~CO2_Sensor();
 };
 
