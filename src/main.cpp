@@ -115,10 +115,10 @@ void setup() {
 
   co2Chart.setContext(Context::getC02Chart(&co2));
 
-  display.addPage(home.getContext());
-  display.addPage(tempChart.getContext());
-  display.addPage(hudmChart.getContext());
-  display.addPage(co2Chart.getContext());
+  display.addPage(home.getContext(), " ");
+  display.addPage(tempChart.getContext(), "Home");
+  display.addPage(hudmChart.getContext(),"Home");
+  display.addPage(co2Chart.getContext(), "Home");
 
   display.begin();
   display.drawPage("Home");

@@ -16,7 +16,7 @@ void DrawerMod::begin()
     _display->eraseDisplay();
 }
 
-void DrawerMod::drawContext(DrawContext context)
+void DrawerMod::drawContext(DrawContext context, bool redraw = 0)
 {
     DEBUG(context.elements.size());
     _display->fillScreen(GxEPD_WHITE);
@@ -24,7 +24,7 @@ void DrawerMod::drawContext(DrawContext context)
     {
         _drawEl(context.elements[i].el);
     }
-    if(_lastName == context.name)
+    if(redraw == 0 || _lastName == context.name)
     {
         this->_update(0, 0, w, h);    
     } 
@@ -100,16 +100,19 @@ void DrawerMod::_drawEl(IElement *el)
     }
 }
 
-bool DrawerMod::addPage(DrawContext page)
+bool DrawerMod::addPage(DrawContext page, String redrawAfter)
 {
     for(auto p : _pages)
     {
-        if (p.name == page.name)
+        if (p.context.name == page.name)
         {
             return 0;
         }
     }
-    _pages.push_back(page);
+    Page pg;
+    pg.context = page;
+    pg.redrawAfter = redrawAfter;
+    _pages.push_back(pg);
     return 1;
 }
 
@@ -117,9 +120,9 @@ void DrawerMod::drawPage(String name)
 {
     for(auto p : _pages)
     {
-        if (p.name == name)
+        if (p.context.name == name)
         {
-            this->drawContext(p);
+            this->drawContext(p.context, (p.redrawAfter == " " || p.redrawAfter == _lastName));
             return;
         }
     }
@@ -129,15 +132,17 @@ void DrawerMod::drawNextPage()
 {
     for(size_t i = 0; i < _pages.size(); i++)
     {
-        if (_pages[i].name == _lastName)
+        if (_pages[i].context.name == _lastName)
         {
             if(i + 1 < _pages.size())
             {
-                this->drawContext(_pages[i + 1]);
+                //this->drawContext(_pages[i + 1].context, (_pages[i + 1].redrawAfter != "" || _pages[i + 1].redrawAfter == _lastName));
+                this->drawPage(_pages[i + 1].context.name);
             }
             else
             {
-                this->drawContext(_pages[0]);
+                //this->drawContext(_pages[0].context, (_pages[0].redrawAfter != "" || _pages[0].redrawAfter == _lastName));
+                this->drawPage(_pages[0].context.name);
             }
             return;
         }

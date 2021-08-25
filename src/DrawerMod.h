@@ -14,6 +14,8 @@
 #include <GxGDEM029T94/GxGDEM029T94.h>  //not right
 #endif
 
+typedef struct{DrawContext context; String redrawAfter;} Page;
+
 class DrawerMod
 {
 private:
@@ -22,7 +24,7 @@ private:
 
     int h, w;
 
-    vector<DrawContext> _pages;
+    vector<Page> _pages;
 
     void _drawRect(int, int, int, int, bool, uint32_t);
     void _drawLine(int, int, int, int, uint32_t);
@@ -38,8 +40,8 @@ public:
     DrawerMod(GxEPD_Class * display, int _w, int _h);
 
     void begin();
-    void drawContext(DrawContext context);    
-    bool addPage(DrawContext page);
+    void drawContext(DrawContext context, bool redraw);    
+    bool addPage(DrawContext page, String redrawAfter);
     void drawNextPage();
     void redrawLastPage();
     void drawPage(String name);
