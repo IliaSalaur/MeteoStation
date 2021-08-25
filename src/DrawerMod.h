@@ -11,7 +11,7 @@
 #ifdef DISPLAY213
 #include <GxGDE0213B1/GxGDE0213B1.h>
 #elif defined(DISPLAY290)
-#include <GxGDEH029A1/GxGDEH029A1.h> //not right
+#include <GxGDEM029T94/GxGDEM029T94.h>  //not right
 #endif
 
 class DrawerMod
