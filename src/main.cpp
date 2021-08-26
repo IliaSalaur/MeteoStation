@@ -68,12 +68,25 @@ void onMaxLimit()
   DEBUG("LIMIT!!!");
 }
 
+void handleBlynkData()
+{
+  static uint32_t tmr = 0;
+  if(millis() - tmr >= 10000)
+  {
+    tmr = millis();
+    Blynk.virtualWrite(V0, temp_sensor.getData());
+    Blynk.virtualWrite(V1, hudm_sensor.getData());
+    Blynk.virtualWrite(V2, co2_sensor.getData());
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.setTimeout(30);
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
+  WiFi.setAutoReconnect(true);
 
   MillisTimer wifiTimer;
   wifiTimer.start(20000, 1);
@@ -147,35 +160,19 @@ void loop()
     break;
   }
 
-  if(wf_connected)
+  if(WiFi.status() == WL_CONNECTED)
   {
     Blynk.run();
     hudm_sensor.handleAverageData(timeNtp->getTime().hour, &humidity);
     temp_sensor.handleAverageData(timeNtp->getTime().hour, &temperature);
     co2_sensor.handleAverageData(timeNtp->getTime().hour, &co2);
     syncRedraw(timeNtp->getTime().minute);
+    handleBlynkData();
+  }
+  else{
+    WiFi.reconnect();
   }
   handleDisplay();
-}
-
-BLYNK_READ(V0)
-{
-  Blynk.virtualWrite(V0, temp_sensor.getData());
-}
-
-BLYNK_READ(V1)
-{
-  Blynk.virtualWrite(V1, hudm_sensor.getData());
-}
-
-BLYNK_READ(V2)
-{
-  Blynk.virtualWrite(V2, co2_sensor.getData());
-}
-
-BLYNK_CONNECTED()
-{
-  Blynk.syncAll();
 }
 
 
