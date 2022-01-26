@@ -8,7 +8,7 @@
 #include <Sensors.h>
 #include <DrawerMod.h>
 #include <TimeManager.h>
-#include <BlynkSimpleEsp8266.h>
+//#include <BlynkSimpleEsp8266.h>
 
 #define AUTH_TOKEN "qqklouv9Shw7gGmSzenYJTh7wWwQbApl"
 
@@ -64,7 +64,7 @@ void syncRedraw(uint8_t min)
 
 void onMaxLimit()
 {
-  Blynk.notify(String("Открой окно! CO2 превысил концентрацию в ") + String(CO2_MAX_LIMIT) + String("ppm!"));
+  //Blynk.notify(String("Открой окно! CO2 превысил концентрацию в ") + String(CO2_MAX_LIMIT) + String("ppm!"));
   DEBUG("LIMIT!!!");
 }
 
@@ -74,9 +74,9 @@ void handleBlynkData()
   if(millis() - tmr >= 10000)
   {
     tmr = millis();
-    Blynk.virtualWrite(V0, temp_sensor.getData());
-    Blynk.virtualWrite(V1, hudm_sensor.getData());
-    Blynk.virtualWrite(V2, co2_sensor.getData());
+    //Blynk.virtualWrite(V0, temp_sensor.getData());
+    //Blynk.virtualWrite(V1, hudm_sensor.getData());
+    //Blynk.virtualWrite(V2, co2_sensor.getData());
   }
 }
 
@@ -98,7 +98,7 @@ void setup() {
     if(WiFi.status() == WL_CONNECTED)
     {
       timeNtp = new TimeManager(TIMEZONE);
-      Blynk.begin(AUTH_TOKEN, WIFI_SSID, WIFI_PASS);
+      //Blynk.begin(AUTH_TOKEN, WIFI_SSID, WIFI_PASS);
       wf_connected = 1;
       break;
     } 
@@ -162,7 +162,7 @@ void loop()
 
   if(WiFi.status() == WL_CONNECTED)
   {
-    Blynk.run();
+    //Blynk.run();
     hudm_sensor.handleAverageData(timeNtp->getTime().hour, &humidity);
     temp_sensor.handleAverageData(timeNtp->getTime().hour, &temperature);
     co2_sensor.handleAverageData(timeNtp->getTime().hour, &co2);
@@ -170,6 +170,7 @@ void loop()
     handleBlynkData();
   }
   else{
+    DEBUG("RECONNECT!")
     WiFi.reconnect();
   }
   handleDisplay();
