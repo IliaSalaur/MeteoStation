@@ -25,8 +25,10 @@ struct IElement
     int y = 0;
     int width = 0;
     int height = 0;
-    ElType eltype = ElType::NULL_EL;
+    ElType eltype;
     uint32_t col = 0;
+
+    IElement(ElType elt) : eltype(elt){}
 
     /*
     \brief Function for setting the size and position of element
@@ -47,46 +49,26 @@ struct IElement
 struct ElBitmap : public IElement
 {
     const unsigned char* bitmap;
-    ElBitmap(const unsigned char* b)
-    {
-        bitmap = b;
-        eltype = ElType::BITMAP;
-    }
-    ElBitmap()
-    {
-
-    }
+    ElBitmap(const unsigned char* b) : bitmap(b), IElement(ElType::BITMAP){}
+    ElBitmap() : IElement(ElType::BITMAP){}
 };
 
 struct ElText : public IElement
 {
     String text = "text";
     GFXfont* font = nullptr;
-    ElText(String t, const GFXfont* f)
-    {
-        text = t;
-        //font = f;
-        font = const_cast<GFXfont*>(f);
-        eltype = ElType::TEXT;
-    }
+    ElText(String t, const GFXfont* f) : text(t), font(const_cast<GFXfont*>(f)), IElement(ElType::TEXT){}
 };
 
 struct ElRect : public IElement
 {
     bool fill;
-    ElRect()
-    {
-        fill = 0;
-        eltype = ElType::RECT;
-    }
+    ElRect() : fill(0), IElement(ElType::RECT){}
 };
 
 struct ElLine : public IElement
 {
-    ElLine()
-    {
-        eltype = ElType::LINE;
-    }
+    ElLine() : IElement(ElType::LINE){}
 };
 
 struct ElChart : public ElBitmap
@@ -94,14 +76,14 @@ struct ElChart : public ElBitmap
     Average *average;
     float maxValue;
     float minValue;
-    ElChart()
+    ElChart() : maxValue(0), minValue(0)
     {
         maxValue = 0;
         minValue = 0;
         eltype = ElType::CHART;
     }
 
-    ElChart(float max, float min, Average* avg, const unsigned char* b)
+    ElChart(float max, float min, Average* avg, const unsigned char* b) : maxValue(max), minValue(min), average(avg), ElBitmap(b)
     {
         maxValue = max;
         minValue = min;
@@ -116,17 +98,9 @@ struct Element
     IElement* el;
     String label;
 
-    Element()
-    {
-        label = "";
-        el = nullptr;
-    }
+    Element() : el(nullptr), label(){}
 
-    Element(IElement* e, String l)
-    {
-        label = l;
-        el = e;
-    }
+    Element(IElement* e, String l) : el(e), label(l){}
 };
 
 typedef struct{vector<Element> elements; String name;} DrawContext;  

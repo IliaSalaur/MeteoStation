@@ -5,18 +5,13 @@
 #include <NTPClient.h>
 struct TimeStruct
 {
-  uint8_t hour = 0;
-  uint8_t minute = 0;
+  uint8_t hour;
+  uint8_t minute;
 
-  TimeStruct(){
-    hour = 0;
-    minute = 0;
-  }
+  TimeStruct() : hour(0), minute(0){}
 
-  TimeStruct(uint8_t h, uint8_t m){
-    hour = h;
-    minute = m;
-  }
+  TimeStruct(uint8_t h, uint8_t m) : hour(h), minute(m){}
+
 };
 
 class TimeManager
@@ -30,7 +25,7 @@ private:
   {
     uint8_t h = timeClient->getHours();
 
-    if(h + offset / 24 == 1)
+    if((h + offset) / 24 == 1)
     {
       return h + offset - 24;
     }

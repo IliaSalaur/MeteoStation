@@ -17,7 +17,7 @@ Average temperature;
 Average humidity;
 Average co2;
 
-GxIO_Class io(SPI, /*CS=D8*/ D8, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
+GxIO_Class io(SPI, /*CS=D8*/ D1, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
 GxEPD_Class epaper(io, /*RST=D4*/ 2, /*BUSY=D2*/ 4);
 
 
@@ -25,7 +25,7 @@ DrawerMod display(&epaper, WIDTH_D, HEIGHT_D);
 Button button(D0);
 
 MHZ19PWM mhz(D6, MHZ_ASYNC_MODE);
-DHT dht(D1, DHT11);
+DHT dht(D8, DHT11);
 
 Temp_Sensor temp_sensor(&dht);
 Hudm_Sensor hudm_sensor(&dht);
@@ -43,9 +43,9 @@ DrawContextClass co2Chart;
 
 void handleDisplay(bool redraw = 0)
 {
-  static uint32_t htmr = -60000;
+  static uint32_t htmr = 0;
   htmr = (redraw) ? -1:htmr;
-  if(millis() - htmr >= 61000)
+  if(millis() - htmr >= 60000)
   {
     htmr = millis();
     display.redrawLastPage();
@@ -141,7 +141,6 @@ void loop()
 {
   i++;
   home.set<ElText>("date")->text = timeNtp->getDateFormatted();
-  home.set<ElText>("text")->text = String("kek") + String(i);
   home.set<ElText>("time")->text = timeNtp->getTimeFormatted();
   home.set<ElText>("hudm")->text = String(hudm_sensor.getData(), 0) + String("%");
   home.set<ElText>("temp")->text = String(temp_sensor.getData(), 1);
