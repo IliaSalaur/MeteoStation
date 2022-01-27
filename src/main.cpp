@@ -17,15 +17,15 @@ Average temperature;
 Average humidity;
 Average co2;
 
-GxIO_Class io(SPI, /*CS=D8*/ D1, /*DC=D3*/ 0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
+GxIO_Class io(SPI, /*CS=D8*/ D1, /*DC=D3*/ D0, /*RST=D4*/ 2); // arbitrary selection of D3(=0), D4(=2), selected for default of GxEPD_Class
 GxEPD_Class epaper(io, /*RST=D4*/ 2, /*BUSY=D2*/ 4);
 
 
 DrawerMod display(&epaper, WIDTH_D, HEIGHT_D);
-Button button(D0);
+Button button(D8);
 
 MHZ19PWM mhz(D6, MHZ_ASYNC_MODE);
-DHT dht(D8, DHT11);
+DHT dht(D3, DHT11);
 
 Temp_Sensor temp_sensor(&dht);
 Hudm_Sensor hudm_sensor(&dht);
@@ -34,7 +34,6 @@ CO2_Sensor co2_sensor(&mhz, EMULATE_CO2);
 TimeManager* timeNtp = nullptr;
 
 bool wf_connected = 0;
-int i = 0;
 
 DrawContextClass home;
 DrawContextClass tempChart;
@@ -45,7 +44,7 @@ void handleDisplay(bool redraw = 0)
 {
   static uint32_t htmr = 0;
   htmr = (redraw) ? -1:htmr;
-  if(millis() - htmr >= 60000)
+  if(millis() - htmr >= 59700)
   {
     htmr = millis();
     display.redrawLastPage();
@@ -55,6 +54,13 @@ void handleDisplay(bool redraw = 0)
 void syncRedraw(uint8_t min)
 {
   static uint8_t _lastMin = 0;
+
+  home.set<ElText>("date")->text = timeNtp->getDateFormatted();
+  home.set<ElText>("time")->text = timeNtp->getTimeFormatted();
+  home.set<ElText>("hudm")->text = String(hudm_sensor.getData(), 0) + String("%");
+  home.set<ElText>("temp")->text = String(temp_sensor.getData(), 1);
+  home.set<ElText>("co2")->text = String(co2_sensor.getData(), 0);
+
   if(_lastMin != min)
   {
     handleDisplay(1);
@@ -139,12 +145,6 @@ void setup() {
 
 void loop()
 {
-  i++;
-  home.set<ElText>("date")->text = timeNtp->getDateFormatted();
-  home.set<ElText>("time")->text = timeNtp->getTimeFormatted();
-  home.set<ElText>("hudm")->text = String(hudm_sensor.getData(), 0) + String("%");
-  home.set<ElText>("temp")->text = String(temp_sensor.getData(), 1);
-  home.set<ElText>("co2")->text = String(co2_sensor.getData(), 0);
   //home.set<ElBitmap>("buzzer")->bitmap = (i % 2 == 1) ? bm.buzzer.off : bm.buzzer.on;
   //home.set<ElRect>("bper")->width = (i % 5) * 4;
 
